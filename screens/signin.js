@@ -1,24 +1,47 @@
-import { StatusBar } from 'expo-status-bar';
-import React from 'react';
-import { StyleSheet, Text, View,SafeAreaView,ImageBackground, ScrollView,Dimensions,Image, TouchableOpacity, TextInput } from 'react-native';
+import React,{useState,useEffect} from 'react';
+import { StyleSheet, 
+  Text, 
+  View,
+  SafeAreaView,
+  ImageBackground,
+  TouchableOpacity,
+  TextInput,Alert } from 'react-native';
+import {KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view'
+
+
 import { BlurView } from 'expo-blur';
+import { createUserWithEmailAndPassword,getAuth } from 'firebase/auth';
+import { getFirestore,collection, doc, setDoc} from 'firebase/firestore';
+import AppFirebase from '../firebase/config';
+
+const firestore = getFirestore(AppFirebase)
+const auth = getAuth(AppFirebase)
+
+const usersRef = collection(firestore, "users");
 
 const image = {
   uri: 'https://firebasestorage.googleapis.com/v0/b/primeravistaexpo.appspot.com/o/primeravistaExpo%2Fcasa.jpg?alt=media&token=06f7b093-aa89-49df-96e0-f3027be1e00b',
 };
 
 export default function SigninScreen({navigation}) {
+
+ const [email,setEmail] = useState('')
+ const [pwd,setPwd] = useState('')
+ const [name,setName] = useState('')
+ const [surname,setSurname] = useState('')
+ const [phone,setPhone] = useState('')
+
   return (
     <ImageBackground
     style={[styles.image,StyleSheet.absoluteFill]}
     source={image}
-
     resizeMode="stretch">
     <SafeAreaView style={styles.container}>
     <TouchableOpacity onPress={()=>{navigation.navigate('WelcomeScreen')}} style={[styles.buttonHome]}>
           <Text style={styles.textStyle}>Home</Text>
     </TouchableOpacity>
       <BlurView intensity={50} tint="dark" style={styles.blurContainer}>
+    
       <Text style={styles.title}>
           Hospedaje Primera Vista
         </Text>
@@ -26,32 +49,56 @@ export default function SigninScreen({navigation}) {
          Registrar Usuario
         </Text>
       </BlurView>
-      <ScrollView style={{flex:1,}}>
-      <BlurView intensity={50} tint="dark" style={styles.contentCenter}>
+      <KeyboardAwareScrollView style={styles.scrollView}>
+      <BlurView intensity={80} tint="dark" style={styles.contentCenter}>
+
       <Text style={styles.textStyle}>Nombre</Text>
-      <TextInput style={styles.input} placeholder='Juan'></TextInput>
+      <TextInput onChangeText={(text)=> setName(text)} style={styles.input} placeholder='Juan'></TextInput>
       <Text style={styles.textStyle}>Apellido</Text>
-      <TextInput style={styles.input} placeholder='Perez'></TextInput>
+      <TextInput onChangeText={(text)=> setSurname(text)} style={styles.input} placeholder='Perez'></TextInput>
       <Text style={styles.textStyle}>Telefono</Text>
-      <TextInput style={styles.input} placeholder='986021433'></TextInput>
+      <TextInput onChangeText={(text)=> setPhone(text)} style={styles.input} placeholder='986021433'></TextInput>
       <Text style={styles.textStyle}>Email</Text>
-      <TextInput style={styles.input} placeholder='juan.perez@primeravista.cl'></TextInput>
+      <TextInput onChangeText={(text)=> setEmail(text)} autoCapitalize='none'  style={styles.input} placeholder='juan.perez@primeravista.cl'></TextInput>
       <Text style={styles.textStyle}>Contraseña</Text>
-      <TextInput secureTextEntry={true} style={styles.input} placeholder='*****'></TextInput>
+      <TextInput onChangeText={(text)=> setPwd(text)} autoCapitalize='none' secureTextEntry={true} style={styles.input} placeholder='*****'></TextInput>
       <View style={styles.buttonContainers}>
-      <TouchableOpacity onPress={()=>{navigation.navigate('LoginScreen')}} style={[styles.button,{backgroundColor:'#59FF0090'}]}>
+      <TouchableOpacity onPress={()=>{
+   
+        createUserWithEmailAndPassword(auth,email,pwd)
+        .then((userCredential) => {
+          const user = userCredential.user;
+          setDoc(doc(usersRef, user.uid), {
+            name: name, surname: surname, phone: phone,
+            email: email}).then(()=>{Alert.alert('User account created & signed in!');})
+        })
+        .catch(error => {
+          if (error.code === 'auth/email-already-in-use') {
+            console.log('That email address is already in use!');
+          }
+          if (error.code === 'auth/invalid-email') {
+            console.log('That email address is invalid!');
+          }
+      
+          Alert.alert(error);
+        });
+          } }style={[styles.button,{backgroundColor:'#59FF0090'}]}>
             <Text style={styles.textStyle}>Registrar Usuario</Text>
           </TouchableOpacity>
 
       </View>
       </BlurView>
-      </ScrollView>
+      </KeyboardAwareScrollView>
+
     </SafeAreaView>
   </ImageBackground>
   );
 }
 
 const styles = StyleSheet.create({
+  scrollView:{
+    flex:1,
+  },
   input:{
     padding:5,
     borderColor:'#59FF0090',
@@ -83,7 +130,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   title: {
-    fontSize: 30,
+    fontSize: 25,
     color: 'white',
     fontWeight: 'bold',    
     textAlign: 'center',    
@@ -105,7 +152,7 @@ const styles = StyleSheet.create({
     borderWidth:1,
     alignItems:'center',
     flex: 0.1,
-    padding:20,
+    padding:10,
     justifyContent: 'center',
   },
   blurContainerButtons: {

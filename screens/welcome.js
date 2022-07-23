@@ -61,7 +61,7 @@ const styles = StyleSheet.create({
     flex: 0.5,
   },
   title: {
-    fontSize: 35,
+    fontSize: 25,
     color: 'white',
     fontWeight: 'bold',    
     textAlign: 'center',    
@@ -79,7 +79,7 @@ const styles = StyleSheet.create({
     marginTop:50,
     alignItems:'center',
     flex: 0.3,
-    padding:10,
+    padding:5,
     justifyContent: 'center',
   },
   blurContainerButtons: {

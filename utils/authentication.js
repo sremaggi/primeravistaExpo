@@ -11,7 +11,7 @@ export function useAuthentication() {
   useEffect(() => {
     const unsubscribeFromAuthStatuChanged = onAuthStateChanged(auth, (user) => {
       if (user) {
-        console.log('AUNTENTICADO! ',user)
+        console.log('AUNTENTICADO! '+user.email)
         setUser(user);
       } else {
         setUser(undefined);
